@@ -9,6 +9,9 @@ class Tenant extends Model
 {
     use HasFactory;
 
+    /**
+     * Mass-assignable attributes
+     */
     protected $fillable = [
         'name',
         'domain',
@@ -16,21 +19,34 @@ class Tenant extends Model
         'settings',
     ];
 
+    /**
+     * Attribute casting
+     */
     protected $casts = [
         'settings' => 'array',
     ];
 
     /**
-     * A tenant has many users
+     * Route key for model binding.
+     * This tells Laravel to use the 'domain' column
+     * instead of the default 'id' when resolving route parameters.
      */
+    public function getRouteKeyName(): string
+    {
+        return 'domain';
+    }
+
+    /**
+     * Relationships
+     */
+
+    // A tenant has many users
     public function users()
     {
         return $this->hasMany(User::class);
     }
 
-    /**
-     * Placeholder for other relationships
-     * e.g., leads(), projects(), etc.
-     */
+    // Placeholder for other relationships
+    // e.g., leads(), projects(), etc.
     // public function leads() { return $this->hasMany(Lead::class); }
 }
