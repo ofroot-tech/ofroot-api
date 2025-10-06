@@ -41,3 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::apiResource('projects', ProjectController::class);
 });
 
+Route::get('/health', function () {
+    return response()->json(['status' => 'OK'], 200);
+});
+
