@@ -65,8 +65,8 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 EXPOSE 10000
 
 # Define the command to start your application (Laravel/Lumen)
-# To run migrations automatically on container start, change the CMD to:
-CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000"]
+# To ensure a clean database state and seed data on container start, use:
+CMD ["sh", "-c", "php artisan migrate:fresh --seed --force && php artisan serve --host=0.0.0.0 --port=10000"]
 
 # The below command will just start the server and should be used if migrations are not needed. 
 # CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
