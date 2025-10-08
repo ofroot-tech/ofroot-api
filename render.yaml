@@ -1,0 +1,93 @@
+# =============================================================================
+# RENDER SERVICE CONFIGURATION FILE FOR OFROOT
+# =============================================================================
+# Author: Dimitri Aaron McDaniel Sr.
+# Purpose: Define reproducible deployment configuration for Render services.
+#          This file allows version-controlled, auditable, and consistent
+#          deployments of both the backend (Laravel API) and frontend (Node app).
+# =============================================================================
+# Usage:
+#   - Commit this file into your repository to maintain Infrastructure-as-Code.
+#   - Render will read this configuration on deploy to provision services.
+#   - Modifications here should correspond to changes in Dockerfile, Node app,
+#     environment variables, or service structure.
+# =============================================================================
+# Notes:
+#   - This file is fully descriptive. Every key and value is explained for clarity.
+#   - Environment variables must be updated to match production secrets.
+#   - For one-time operations (e.g., migrations), modify Dockerfile or use a
+#     separate Dockerfile with CMD adjustments as described in documentation.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Backend Service: ofroot-api
+# ---------------------------------------------------------------------------
+# This service defines the backend API running Laravel inside Docker.
+# It handles business logic, database interactions, and API endpoints.
+# ---------------------------------------------------------------------------
+# services:
+#   - type: web                     # Render service type: web-facing container.
+#     name: ofroot-api              # Unique service identifier.
+#     env: docker                   # Environment type: Docker-based deployment.
+#     plan: free                     # Free plan usage; adjust if scaling or performance needed.
+#     dockerfilePath: ./ofroot-api/Dockerfile  # Path to the Dockerfile defining the build and runtime.
+#     
+#     # Environment Variables
+#     envVars:
+#       - key: APP_ENV               # Laravel environment setting.
+#         value: production         # Must be 'production' for Render production deployment.
+#       - key: DB_CONNECTION        # Database connection string, formatted as per Laravel docs.
+#         value: <your_db_connection_string>
+#       # Add other backend environment variables as required by Laravel, such as:
+#       # CACHE_DRIVER, QUEUE_CONNECTION, MAIL_* etc.
+#     
+#     autoDeploy: true              # Automatically redeploy on new commits to the linked branch.
+#     healthCheckPath: /            # URL path to validate service health; '/' is typical for APIs.
+
+# ---------------------------------------------------------------------------
+# Frontend Service: ofroot-frontend-application
+# ---------------------------------------------------------------------------
+# This service defines the frontend web application built with Node.js.
+# It handles client-facing UI, static assets, and serves the user interface.
+# ---------------------------------------------------------------------------
+#   - type: web                     # Render service type: web container.
+#     name: ofroot-frontend-application  # Unique service identifier for frontend.
+#     env: node                     # Environment type: Node.js
+#     plan: free                     # Free plan; adjust if scaling or performance needed.
+#     buildCommand: yarn install && yarn build  # Commands to install dependencies and build production assets.
+#     startCommand: yarn start       # Command to start the Node.js server serving the frontend.
+#     rootDir: ./ofroot-frontend-application   # Root directory containing frontend source code.
+#     
+#     # Environment Variables
+#     envVars:
+#       - key: NODE_ENV             # Node environment
+#         value: production        # Production mode ensures optimized builds.
+#       # Add other frontend env vars as needed, such as API_ENDPOINT, REACT_APP_* etc.
+#     
+#     autoDeploy: true              # Automatically redeploy frontend on code changes.
+#     healthCheckPath: /            # Endpoint for Render to check frontend health.
+
+# =============================================================================
+# Detailed Commentary
+# =============================================================================
+# 1. Purpose of Splitting Services:
+#    - Backend (Laravel API) and frontend (Node) are deployed separately for
+#      isolation, scaling, and clear CI/CD pipelines.
+# 2. Docker Usage:
+#    - Backend uses Dockerfile for reproducible builds.
+#    - Frontend uses Node environment directly; Docker optional.
+# 3. Environment Variables:
+#    - Secrets and configuration are injected via envVars rather than hard-coded.
+#    - Ensures code portability and avoids leaking credentials.
+# 4. AutoDeploy:
+#    - Keeps production in sync with repository; can be disabled for manual control.
+# 5. Health Checks:
+#    - Essential for Render to detect unhealthy services and automatically restart them.
+# 6. Version Control:
+#    - Keeping this file under source control enables tracking changes over time,
+#      allows rollback, and serves as deployment documentation.
+# 7. Migration Strategy:
+#    - One-time database migrations are not recommended to be run via YAML directly
+#      on free plan; use temporary Dockerfile CMD adjustments or separate migration
+#      Dockerfile as outlined in deployment documentation.
+# =============================================================================
