@@ -46,7 +46,9 @@ class Tenant extends Model
         return $this->hasMany(User::class);
     }
 
-    // Placeholder for other relationships
-    // e.g., leads(), projects(), etc.
-    // public function leads() { return $this->hasMany(Lead::class); }
+    // A tenant has many leads
+    public function leads()
+    {
+        return $this->hasMany(Lead::class);
+    }
 }

@@ -67,7 +67,7 @@ EXPOSE 10000
 # Define the command to start your application (Laravel/Lumen)
 # To ensure a clean database state and seed data on container start, use:
 # Last run: 10/8/2025
-CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000"]
+# CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000"]
 
 # The below command will just start the server and should be used if migrations are not needed. 
-# CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
