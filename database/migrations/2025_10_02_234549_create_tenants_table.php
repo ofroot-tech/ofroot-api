@@ -11,19 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tenants', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->string('domain')->nullable()->unique(); // optional custom domain
-            $table->string('plan')->default('free'); // e.g., free, pro, enterprise
-            $table->json('settings')->nullable(); // tenant-specific configuration
-            $table->timestamps();
-        });
-
-        // Optional: add tenant_id to users table if multi-tenant users
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('tenant_id')->nullable()->constrained()->cascadeOnDelete();
-        });
+        // Tenants table is created in an earlier migration (2025_10_02_140000_...).
+        // Here we only ensure users.tenant_id exists and is constrained to tenants.id.
+        if (!Schema::hasColumn('users', 'tenant_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->foreignId('tenant_id')->nullable()->constrained('tenants')->cascadeOnDelete();
+            });
+        }
     }
 
     /**
@@ -31,12 +25,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['tenant_id']);
-            $table->dropColumn('tenant_id');
-        });
-
-        Schema::dropIfExists('tenants');
+        if (Schema::hasColumn('users', 'tenant_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropForeign(['tenant_id']);
+                $table->dropColumn('tenant_id');
+            });
+        }
+        // Do not drop the tenants table here; it is managed by the earlier migration.
     }
 };
 
