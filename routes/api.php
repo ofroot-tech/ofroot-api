@@ -14,8 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\LeadController;
-// Future controllers:
-// use App\Http\Controllers\Api\ProjectController;
+use App\Http\Middleware\EnsureAdmin;
 
 // -----------------------------------------------------------------------------
 //  Section 1: Default Authenticated User Route
@@ -95,3 +94,15 @@ Instructions: Activating This Route File in Your Laravel Application
 
 ===============================================================================
 */
+
+// Admin-only Tenants API: create/list/update
+Route::middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
+    // POST /api/tenants (create)
+    Route::post('/tenants', [TenantController::class, 'store']);
+
+    // GET /api/tenants (list)
+    Route::get('/tenants', [TenantController::class, 'index']);
+
+    // PUT /api/tenants/{id} (update)
+    Route::put('/tenants/{id}', [TenantController::class, 'updateById']);
+});

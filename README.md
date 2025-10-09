@@ -164,7 +164,20 @@ POST /api/leads
 ```
 Response: 201 Created with the lead JSON.
 
-## End-to-End Workflow
-1) Create tenants (auth routes) or seed locally.
-2) Submit leads via POST /api/leads (tenant_id optional).
-3) Query via your admin routes or DB as needed; leads keep status=new by default.
+## Admin Tenants API (authenticated + admin)
+Guarding
+- Requires auth via Sanctum and admin middleware.
+- Admin users are matched by email against ADMIN_EMAILS (comma-separated) env var.
+
+Endpoints
+- POST /api/tenants — create tenant
+- GET /api/tenants — list current user’s tenant (example impl) or all tenants (adjust as needed)
+- PUT /api/tenants/{id} — update tenant by id (admin-only helper)
+
+Enable admin
+- In `.env`, set: ADMIN_EMAILS=admin@example.com,ops@example.com
+
+Examples
+- curl -H "Authorization: Bearer <token>" -X POST /api/tenants -d '{"name":"Acme"}'
+- curl -H "Authorization: Bearer <token>" /api/tenants
+- curl -H "Authorization: Bearer <token>" -X PUT /api/tenants/1 -d '{"plan":"pro"}'

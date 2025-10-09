@@ -134,4 +134,36 @@ class TenantController extends Controller
             'message' => 'Tenant deleted successfully',
         ], 200);
     }
+
+    /**
+     * Admin: update tenant by id (explicit resource targeting).
+     */
+    public function updateById(Request $request, int $id)
+    {
+        $tenant = Tenant::find($id);
+        if (!$tenant) {
+            return response()->json(['message' => 'Tenant not found'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name'     => 'sometimes|string|max:255|unique:tenants,name,' . $tenant->id,
+            'domain'   => 'nullable|string|max:255|unique:tenants,domain,' . $tenant->id,
+            'plan'     => 'nullable|string|max:255',
+            'settings' => 'nullable|array',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation errors',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        $tenant->update($request->only(['name', 'domain', 'plan', 'settings']));
+
+        return response()->json([
+            'message' => 'Tenant updated successfully',
+            'data'    => $tenant,
+        ], 200);
+    }
 }
