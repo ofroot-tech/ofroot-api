@@ -133,3 +133,14 @@ Endpoints (admin-only)
 
 Security
 - Requires auth via Sanctum and ADMIN_EMAILS allowlist.
+
+## Frontend integration (Task 4.1)
+- The Next.js app on Vercel should set `NEXT_PUBLIC_API_BASE_URL=https://ofroot-leads.onrender.com/api` so it knows where to call this API in production.
+- If your Vercel app uses cookies/session with Sanctum, set `SANCTUM_STATEFUL_DOMAINS` to include your frontend hosts (e.g., `your-app.vercel.app,www.yourdomain.com`).
+- Ensure CORS allows your frontend origins. Laravel's `HandleCors` middleware reads from `config/cors.php` if present; otherwise the default is permissive. If you tighten CORS, whitelist:
+  - `https://<your-project>.vercel.app`
+  - Any custom domains you add later.
+
+Local dev pairings
+- Frontend: `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api`
+- API: run `php artisan serve` (port 8000) and `php artisan migrate:fresh` as needed.
