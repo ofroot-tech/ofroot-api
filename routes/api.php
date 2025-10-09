@@ -46,6 +46,12 @@ Route::middleware('auth:sanctum')->group(function () {
 // Public endpoint for inbound lead submissions
 Route::post('/leads', [LeadController::class, 'store']);
 
+// Admin-only lead assignment endpoints
+Route::middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
+    Route::post('/leads/assign', [LeadController::class, 'assign']);
+    Route::post('/leads/unassign', [LeadController::class, 'unassign']);
+});
+
 // -----------------------------------------------------------------------------
 //  Section 3: Health Check Endpoint
 //  -----------------------------------------------------------------------------

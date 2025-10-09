@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lead;
-use Illuminate\Http\Request;
+use App\Models\Tenant;
+use App\Services\LeadAssignmentService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -66,5 +68,40 @@ class LeadController extends Controller
             'message' => 'Lead created successfully',
             'data'    => $lead,
         ], 201);
+    }
+
+    /** Attach a lead to a tenant. */
+    public function assign(Request $request, LeadAssignmentService $svc): JsonResponse
+    {
+        $data = Validator::make($request->all(), [
+            'lead_id' => ['required', 'integer', 'exists:leads,id'],
+            'tenant_id' => ['required', 'integer', 'exists:tenants,id'],
+        ])->validated();
+
+        $lead = Lead::findOrFail($data['lead_id']);
+        $tenant = Tenant::findOrFail($data['tenant_id']);
+
+        $updated = $svc->assign($lead, $tenant);
+
+        return response()->json([
+            'message' => 'Lead assigned successfully',
+            'data' => $updated,
+        ], 200);
+    }
+
+    /** Detach a lead from any tenant. */
+    public function unassign(Request $request, LeadAssignmentService $svc): JsonResponse
+    {
+        $data = Validator::make($request->all(), [
+            'lead_id' => ['required', 'integer', 'exists:leads,id'],
+        ])->validated();
+
+        $lead = Lead::findOrFail($data['lead_id']);
+        $updated = $svc->unassign($lead);
+
+        return response()->json([
+            'message' => 'Lead unassigned successfully',
+            'data' => $updated,
+        ], 200);
     }
 }

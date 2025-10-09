@@ -181,3 +181,17 @@ Examples
 - curl -H "Authorization: Bearer <token>" -X POST /api/tenants -d '{"name":"Acme"}'
 - curl -H "Authorization: Bearer <token>" /api/tenants
 - curl -H "Authorization: Bearer <token>" -X PUT /api/tenants/1 -d '{"plan":"pro"}'
+
+## Lead Assignment
+Purpose
+- Attach/detach leads to tenants as an admin-only operation.
+
+Service
+- App\Services\LeadAssignmentService with assign() and unassign().
+
+Endpoints (admin-only)
+- POST /api/leads/assign { lead_id, tenant_id } → attach
+- POST /api/leads/unassign { lead_id } → detach
+
+Security
+- Requires auth via Sanctum and ADMIN_EMAILS allowlist.
