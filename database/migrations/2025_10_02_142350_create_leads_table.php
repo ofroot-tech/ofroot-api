@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('leads', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tenant_id')->nullable()->constrained('tenants')->nullOnDelete(); // tenant optional
+            $table->foreignId('tenant_id')->nullable()->constrained()->nullOnDelete(); // tenant optional
             $table->string('zip', 10)->index();          // user zip code
             $table->string('service', 100);             // type of service
             $table->string('name')->nullable();         // user name

@@ -59,4 +59,81 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# ofroot-api
+
+# Ofroot API
+
+A Laravel 12 API service that exposes multi-tenant primitives (Tenants, Leads) and a pragmatic deployment shape for Render.
+
+## TL;DR
+
+- Production: container starts, runs `php artisan migrate --force`, serves on port 10000. No seeding at boot.
+- Development: optional seeders behind `APP_SEED_ALLOWED=true` generate demo tenants and leads. Nothing seeds by default.
+
+## Concepts
+
+- Tenants own users and leads. Lead belongs to an optional tenant (`tenant_id` nullable, `ON DELETE SET NULL`).
+- Migrations are ordered so foreign keys resolve (tenants before leads).
+- Seeds and factories are dev-only unless explicitly enabled.
+
+## Local Setup
+
+1. Clone and install
+    - PHP >= 8.2, Composer
+    - composer install
+
+2. Environment
+    - cp .env.example .env
+    - php artisan key:generate
+    - For SQLite dev: touch database/database.sqlite and set in `.env`:
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=/absolute/path/to/database/database.sqlite
+
+3. Database
+    - php artisan migrate:fresh
+    - Optionally enable dev seeds: set `APP_SEED_ALLOWED=true` in `.env`, then:
+      - php artisan db:seed --class=TenantAndLeadSeeder
+
+## Seeding Strategy (Production-Safe)
+
+- `TenantAndLeadSeeder` refuses to run in production and when `APP_SEED_ALLOWED` is not `true`.
+- Guard logic:
+  - If `App::environment('production')` → skip
+  - If `APP_SEED_ALLOWED !== 'true'` → skip
+- CLI feedback is printed so you see whether it ran.
+
+## Factories
+
+- `database/factories/TenantFactory.php`: realistic names/domains.
+- `database/factories/LeadFactory.php`: realistic contact/services; `tenant_id` null by default. Attach explicitly when needed.
+
+## Models & Relations
+
+- `Tenant` hasMany `users`, hasMany `leads`.
+- `Lead` belongsTo `tenant`.
+- `Lead` casts: `meta` as array. Scopes: `status($value)`, `zip($value)`.
+
+## Render Deployment Behavior
+
+- Dockerfile runs `php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000`.
+- No automatic seeding in production images.
+- Verify DB connectivity with `php artisan migrate:status` in Render Shell.
+
+## Testing
+
+- Use Pest/PhpUnit.
+- Suggested tests:
+  - Seeder aborts in production.
+  - Seeder runs with `APP_SEED_ALLOWED=true` in non-prod.
+  - Lead↔Tenant relations and scopes.
+
+## Operational Notes
+
+- Removing a tenant sets `tenant_id` on related leads to NULL (no cascade delete).
+- If you must seed in CI, set `APP_SEED_ALLOWED=true` in CI env.
+
+## Change Log (high level)
+
+- feat: add TenantFactory and LeadFactory
+- feat: add TenantAndLeadSeeder with production guard
+- chore: update DatabaseSeeder to call dev seeder conditionally
+- chore: ensure leads.tenant_id is nullable with `nullOnDelete`
