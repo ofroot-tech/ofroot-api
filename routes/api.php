@@ -13,8 +13,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TenantController;
+use App\Http\Controllers\Api\LeadController;
 // Future controllers:
-// use App\Http\Controllers\Api\LeadController;
 // use App\Http\Controllers\Api\ProjectController;
 
 // -----------------------------------------------------------------------------
@@ -43,6 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::apiResource('leads', LeadController::class);
     // Route::apiResource('projects', ProjectController::class);
 });
+
+// Public endpoint for inbound lead submissions
+Route::post('/leads', [LeadController::class, 'store']);
 
 // -----------------------------------------------------------------------------
 //  Section 3: Health Check Endpoint

@@ -11,7 +11,6 @@ class TenantAndLeadSeeder extends Seeder
 {
     public function run(): void
     {
-        // Pulitzer/Knuth note:
         // The first duty of this seeder is to refuse execution in contexts where
         // sample data would be dangerous. Two explicit gates follow.
 
@@ -21,8 +20,9 @@ class TenantAndLeadSeeder extends Seeder
             return;
         }
 
-        // Gate 2: require an explicit, human-set flag
-        if (env('APP_SEED_ALLOWED') !== 'true') {
+        // Gate 2: require an explicit, human-set flag (robust boolean parsing)
+        $allowed = filter_var(env('APP_SEED_ALLOWED', false), FILTER_VALIDATE_BOOL);
+        if (!$allowed) {
             $this->command?->info('TenantAndLeadSeeder: Skipped (APP_SEED_ALLOWED is not true).');
             return;
         }

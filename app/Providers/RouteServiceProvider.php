@@ -14,14 +14,12 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
 
-        // Bind 'tenant' parameter to Tenant model automatically
-        Route::bind('tenant', function ($value) {
-            return Tenant::where('domain', $value)->firstOrFail();
-        });
+        // Remove global tenant binding and middleware for public APIs/tests
+        // Keep bindings minimal; add route-level middleware when needed.
 
         $this->routes(function () {
             Route::prefix('api')
-                ->middleware(['api', 'tenant'])
+                ->middleware(['api'])
                 ->group(base_path('routes/api.php'));
 
             Route::middleware('web')

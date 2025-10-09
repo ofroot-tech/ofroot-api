@@ -26,7 +26,10 @@ class TenantFactory extends Factory
     {
         return [
             'name' => $this->faker->unique()->company(),
-            'domain' => $this->faker->optional()->unique()->domainName(),
+            // Generate a domain sometimes; avoid calling methods on null.
+            'domain' => $this->faker->boolean(70)
+                ? $this->faker->unique()->domainName()
+                : null,
             'plan' => $this->faker->randomElement(['free', 'pro', 'enterprise']),
             'settings' => [],
         ];

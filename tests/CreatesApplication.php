@@ -6,7 +6,7 @@ use Illuminate\Contracts\Console\Kernel;
 
 /**
  * =============================================================================
- * CreatesApplication (Pulitzer/Knuth-style commentary)
+ * CreatesApplication
  * =============================================================================
  * Purpose
  * -------

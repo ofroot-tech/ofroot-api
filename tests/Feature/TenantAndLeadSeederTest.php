@@ -2,7 +2,7 @@
 
 /**
  * =============================================================================
- * TenantAndLeadSeederTest (Pulitzer/Knuth-style commentary)
+ * TenantAndLeadSeederTest
  * =============================================================================
  * Intention
  * ---------
@@ -11,13 +11,6 @@
  *  2) In non-production, the seeder runs only when the explicit flag
  *     APP_SEED_ALLOWED=true is provided.
  *  3) When it does run, it creates Tenants and Leads with the expected linkage.
- *
- * Rationale
- * ---------
- * Seeders are a powerful bootstrapping tool. They are also a foot-gun in
- * production. Our guard contract is simple and explicit, so these tests serve
- * as executable documentation. If the contract changes, these tests should be
- * updated accordingly.
  * =============================================================================
  */
 
@@ -26,17 +19,12 @@ namespace Tests\Feature;
 use App\Models\Lead;
 use App\Models\Tenant;
 use Database\Seeders\TenantAndLeadSeeder;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TenantAndLeadSeederTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // RefreshDatabase ensures a clean schema and data for each test.
-    }
-
-    /** @test */
+    #[Test]
     public function seeder_skips_in_production(): void
     {
         // Arrange: emulate production and allow flag (the guard should still skip)
@@ -55,7 +43,7 @@ class TenantAndLeadSeederTest extends TestCase
         putenv('APP_SEED_ALLOWED');
     }
 
-    /** @test */
+    #[Test]
     public function seeder_skips_when_flag_is_not_true(): void
     {
         // Arrange: non-production with flag disabled
@@ -74,7 +62,7 @@ class TenantAndLeadSeederTest extends TestCase
         putenv('APP_SEED_ALLOWED');
     }
 
-    /** @test */
+    #[Test]
     public function seeder_runs_with_flag_in_non_production(): void
     {
         // Arrange: non-production and allow flag
@@ -83,21 +71,34 @@ class TenantAndLeadSeederTest extends TestCase
         putenv('SEED_TENANTS=2');
         putenv('SEED_LEADS_PER_TENANT=3');
 
+        // Also set superglobals so env() picks up values in all scenarios
+        $_ENV['APP_ENV'] = 'testing';
+        $_ENV['APP_SEED_ALLOWED'] = 'true';
+        $_ENV['SEED_TENANTS'] = '2';
+        $_ENV['SEED_LEADS_PER_TENANT'] = '3';
+        $_SERVER['APP_ENV'] = 'testing';
+        $_SERVER['APP_SEED_ALLOWED'] = 'true';
+        $_SERVER['SEED_TENANTS'] = '2';
+        $_SERVER['SEED_LEADS_PER_TENANT'] = '3';
+
+        // Ensure config reflects env in-process
+        config()->set('app.env', 'testing');
+
         // Act
-        $this->seed(TenantAndLeadSeeder::class);
+        $this->seed(\Database\Seeders\TenantAndLeadSeeder::class);
 
         // Assert: counts match N x M
-        $this->assertSame(2, Tenant::count(), 'Expected 2 tenants to be created.');
-        $this->assertSame(6, Lead::count(), 'Expected 3 leads per tenant x 2 tenants = 6 leads.');
+        $this->assertSame(2, \App\Models\Tenant::count(), 'Expected 2 tenants to be created.');
+        $this->assertSame(6, \App\Models\Lead::count(), 'Expected 3 leads per tenant x 2 tenants = 6 leads.');
 
         // Verify linkage: every lead has a tenant_id that exists
         $this->assertTrue(
-            Lead::query()->whereNull('tenant_id')->doesntExist(),
+            \App\Models\Lead::query()->whereNull('tenant_id')->doesntExist(),
             'All leads created by seeder should be attached to a tenant.'
         );
 
         $this->assertTrue(
-            Lead::query()->pluck('tenant_id')->unique()->every(fn ($id) => Tenant::query()->whereKey($id)->exists()),
+            \App\Models\Lead::query()->pluck('tenant_id')->unique()->every(fn ($id) => Tenant::query()->whereKey($id)->exists()),
             'Every lead tenant_id should point to a real tenant.'
         );
 
@@ -106,5 +107,7 @@ class TenantAndLeadSeederTest extends TestCase
         putenv('APP_SEED_ALLOWED');
         putenv('SEED_TENANTS');
         putenv('SEED_LEADS_PER_TENANT');
+        unset($_ENV['APP_ENV'], $_ENV['APP_SEED_ALLOWED'], $_ENV['SEED_TENANTS'], $_ENV['SEED_LEADS_PER_TENANT']);
+        unset($_SERVER['APP_ENV'], $_SERVER['APP_SEED_ALLOWED'], $_SERVER['SEED_TENANTS'], $_SERVER['SEED_LEADS_PER_TENANT']);
     }
 }

@@ -137,3 +137,34 @@ A Laravel 12 API service that exposes multi-tenant primitives (Tenants, Leads) a
 - feat: add TenantAndLeadSeeder with production guard
 - chore: update DatabaseSeeder to call dev seeder conditionally
 - chore: ensure leads.tenant_id is nullable with `nullOnDelete`
+
+## Public Leads Ingestion API
+- Endpoint: POST /api/leads
+- Purpose: Accept inbound leads from landing pages/forms without auth.
+- Validation rules:
+  - tenant_id: nullable, exists:tenants,id
+  - name: nullable string
+  - email: nullable email
+  - phone: required string
+  - service: required string
+  - zip: required string
+  - source: nullable string
+  - status: optional (defaults to 'new')
+  - meta: nullable object
+
+Example
+```
+POST /api/leads
+{
+  "zip": "90210",
+  "service": "plumbing",
+  "phone": "555-1111",
+  "source": "landing-page"
+}
+```
+Response: 201 Created with the lead JSON.
+
+## End-to-End Workflow
+1) Create tenants (auth routes) or seed locally.
+2) Submit leads via POST /api/leads (tenant_id optional).
+3) Query via your admin routes or DB as needed; leads keep status=new by default.
