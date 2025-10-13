@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Models\Role; // Assign default role to new users
 
 class AuthController extends Controller
 {
@@ -43,6 +44,10 @@ class AuthController extends Controller
 
     /**
      * Register a new user and immediately issue a token.
+     *
+     * Narrative: In a SaaS context, fresh accounts should receive
+     * a safe default role. We attach the 'member' role if it exists,
+     * avoiding privilege escalation while enabling basic access.
      */
     public function register(Request $request): JsonResponse
     {
@@ -50,13 +55,25 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
+            // Optional subscription metadata
+            'plan' => ['nullable', 'in:free,pro,business'],
+            'billingCycle' => ['nullable', 'in:monthly,yearly'],
+            'coupon' => ['nullable', 'string', 'max:50'],
         ])->validated();
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'], // hashed via User::$casts
+            'plan' => $data['plan'] ?? 'free',
+            'billing_cycle' => $data['billingCycle'] ?? 'monthly',
         ]);
+
+        // Assign default role: member (idempotent)
+        $member = Role::where('slug', 'member')->first();
+        if ($member) {
+            $user->roles()->syncWithoutDetaching([$member->id]);
+        }
 
         $token = $user->createToken($request->userAgent() ?: 'web')->plainTextToken;
 

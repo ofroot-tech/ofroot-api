@@ -64,10 +64,19 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Expose the port (e.g., 10000 for Render)
 EXPOSE 10000
 
-# Define the command to start your application (Laravel/Lumen)
-# To ensure a clean database state and seed data on container start, use:
-# Last run: 10/8/2025
-# CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000"]
+# ----------------------------------------------------------------------------
+# Literate note: Optional, safe doc import for production
+# ----------------------------------------------------------------------------
+# We sometimes want fresh production environments to include baseline docs.
+# To avoid accidental overwrites, our DocsSeeder is production-safe:
+# - In production it only creates missing docs (never updates existing ones).
+# - It reads from resources/docs by default, or DOCS_FS_IMPORT_PATH if set.
+# Enable this once by setting SEED_DOCS_ON_BOOT=true in the environment for a deploy.
+# Leave it unset/false for normal runs to avoid repeated work on every start.
+ENV SEED_DOCS_ON_BOOT=false
 
-# The below command will just start the server and should be used if migrations are not needed. 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
+# Define the command to start your application (Laravel/Lumen)
+# On boot: run migrations, optionally seed docs, then start the HTTP server.
+CMD ["sh", "-c", "php artisan migrate --force \
+  && if [ \"$SEED_DOCS_ON_BOOT\" = \"true\" ]; then php artisan db:seed --class=Database\\Seeders\\DocsSeeder; fi \
+  && php artisan serve --host=0.0.0.0 --port=10000"]

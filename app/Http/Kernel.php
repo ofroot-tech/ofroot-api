@@ -54,5 +54,6 @@ class Kernel extends HttpKernel
         // Custom aliases
         'tenant' => \App\Http\Middleware\TenantMiddleware::class,
         'admin' => \App\Http\Middleware\EnsureAdmin::class,
+        'superadmin.email' => \App\Http\Middleware\SuperAdminEmail::class,
     ];
 }

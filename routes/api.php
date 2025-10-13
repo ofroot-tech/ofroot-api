@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Middleware\EnsureAdmin;
 
 // -----------------------------------------------------------------------------
@@ -123,3 +124,29 @@ Route::middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
     // PUT /api/tenants/{id} (update)
     Route::put('/tenants/{id}', [TenantController::class, 'updateById']);
 });
+
+// -----------------------------------------------------------------------------
+//  Section 4: Admin Dashboard Endpoints
+//  -----------------------------------------------------------------------------
+//  Minimal, production-safe endpoints for admin UI. They return real data
+//  when available or correct zero states; never mocked rows.
+// -----------------------------------------------------------------------------
+Route::middleware(['auth:sanctum', EnsureAdmin::class])->prefix('admin')->group(function () {
+    Route::get('/metrics', [AdminController::class, 'metrics']);
+    Route::get('/users', [AdminController::class, 'users']);
+    Route::get('/tenants', [AdminController::class, 'tenants']);
+    Route::get('/subscribers', [AdminController::class, 'subscribers']);
+});
+
+// Admin docs routes
+Route::middleware(['auth:sanctum', \App\Http\Middleware\SuperAdminEmail::class])->prefix('admin')->group(function () {
+    Route::get('/docs', [\App\Http\Controllers\Admin\DocController::class, 'index']);
+    Route::post('/docs', [\App\Http\Controllers\Admin\DocController::class, 'store']);
+    Route::get('/docs/{slug}', [\App\Http\Controllers\Admin\DocController::class, 'show']);
+    Route::put('/docs/{slug}', [\App\Http\Controllers\Admin\DocController::class, 'update']);
+    Route::delete('/docs/{slug}', [\App\Http\Controllers\Admin\DocController::class, 'destroy']);
+});
+
+// Public read-only endpoints for docs (optional; SSR can still read from FS for now)
+Route::get('/docs', [\App\Http\Controllers\PublicDocController::class, 'index']);
+Route::get('/docs/{slug}', [\App\Http\Controllers\PublicDocController::class, 'show']);

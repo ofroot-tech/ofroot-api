@@ -23,3 +23,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# AI instruction files (do not commit)
+/.github/instructions/

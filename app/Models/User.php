@@ -22,6 +22,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        // Persisted subscription metadata
+        'plan',
+        'billing_cycle',
     ];
 
     /**
@@ -54,5 +57,30 @@ class User extends Authenticatable
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /** Roles relationship */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class)->withTimestamps()->withPivot('tenant_id');
+    }
+
+    /** Simple admin accessor based on ADMIN_EMAILS allowlist. */
+    public function getIsAdminAttribute(): bool
+    {
+        $allowlist = collect(explode(',', (string) env('ADMIN_EMAILS', '')))
+            ->map(fn ($e) => strtolower(trim($e)))
+            ->filter();
+        return $allowlist->contains(strtolower((string) $this->email));
+    }
+
+    /** Check role by slug, optionally within a tenant context. */
+    public function hasRole(string $slug, ?int $tenantId = null): bool
+    {
+        $query = $this->roles()->where('slug', $slug);
+        if ($tenantId !== null) {
+            $query->wherePivot('tenant_id', $tenantId);
+        }
+        return $query->exists();
     }
 }
