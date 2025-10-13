@@ -78,5 +78,5 @@ ENV SEED_DOCS_ON_BOOT=false
 # Define the command to start your application (Laravel/Lumen)
 # On boot: run migrations, optionally seed docs, then start the HTTP server.
 CMD ["sh", "-c", "php artisan migrate --force \
-  && if [ \"$SEED_DOCS_ON_BOOT\" = \"true\" ]; then php artisan db:seed --class=Database\\Seeders\\DocsSeeder; fi \
+  && if [ \"$SEED_DOCS_ON_BOOT\" = \"true\" ]; then php artisan db:seed --class=Database\\Seeders\\DocsSeeder --force; fi \
   && php artisan serve --host=0.0.0.0 --port=10000"]
