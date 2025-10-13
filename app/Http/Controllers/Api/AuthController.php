@@ -15,6 +15,27 @@ use App\Models\Role; // Assign default role to new users
 class AuthController extends Controller
 {
     /**
+     * Determine whether public registration is currently open.
+     * Policy: allow until the first user exists, then close.
+     * Optional override: set ALLOW_PUBLIC_REGISTRATION=true to force-open.
+     */
+    private function registrationOpen(): bool
+    {
+        if (env('ALLOW_PUBLIC_REGISTRATION') === true || env('ALLOW_PUBLIC_REGISTRATION') === 'true') {
+            return true;
+        }
+        return User::count() === 0;
+    }
+
+    /**
+     * Lightweight status endpoint for UI gating.
+     */
+    public function registrationStatus(): JsonResponse
+    {
+        return response()->json(['open' => $this->registrationOpen()], 200);
+    }
+
+    /**
      * Issue a Sanctum personal access token for valid credentials.
      */
     public function login(Request $request): JsonResponse
@@ -51,6 +72,13 @@ class AuthController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
+        // Guard: disable registration once an account exists (unless explicitly allowed)
+        if (!$this->registrationOpen()) {
+            return response()->json([
+                'message' => 'Registration is disabled',
+            ], 403);
+        }
+
         $data = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],

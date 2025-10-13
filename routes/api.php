@@ -106,6 +106,7 @@ Instructions: Activating This Route File in Your Laravel Application
 // Public auth endpoints
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
+Route::get('/auth/register-status', [AuthController::class, 'registrationStatus']);
 
 // Authenticated auth endpoints
 Route::middleware('auth:sanctum')->group(function () {
