@@ -74,9 +74,11 @@ EXPOSE 10000
 # Enable this once by setting SEED_DOCS_ON_BOOT=true in the environment for a deploy.
 # Leave it unset/false for normal runs to avoid repeated work on every start.
 ENV SEED_DOCS_ON_BOOT=false
+ENV RESET_ADMIN_PASSWORD_ON_BOOT=false
 
 # Define the command to start your application (Laravel/Lumen)
-# On boot: run migrations, optionally seed docs, then start the HTTP server.
+# On boot: run migrations, optionally reset admin password, optionally seed docs, then start the HTTP server.
 CMD ["sh", "-c", "php artisan migrate --force \
+  && if [ \"$RESET_ADMIN_PASSWORD_ON_BOOT\" = \"true\" ]; then php artisan db:seed --class='Database\\Seeders\\AdminPasswordResetSeeder' --force; fi \
   && if [ \"$SEED_DOCS_ON_BOOT\" = \"true\" ]; then php artisan db:seed --class='Database\\Seeders\\DocsSeeder' --force; fi \
   && php artisan serve --host=0.0.0.0 --port=10000"]
