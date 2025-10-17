@@ -12,6 +12,11 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\LandingController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\PricingRuleController;
+use App\Http\Controllers\Admin\VanityRouteController;
+use App\Http\Controllers\PublicConfigController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\AuthController;
@@ -43,6 +48,18 @@ Route::middleware('auth:sanctum')->group(function () {
     // Future tenant-scoped resources:
     // Route::apiResource('leads', LeadController::class);
     // Route::apiResource('projects', ProjectController::class);
+});
+
+// Public read-only config for frontend
+Route::get('/public/landings', [PublicConfigController::class, 'landings']);
+Route::get('/public/products', [PublicConfigController::class, 'products']);
+
+// Admin CRUD (protected by shared secret header)
+Route::middleware('admin.secret')->prefix('admin')->group(function () {
+    Route::apiResource('landings', LandingController::class);
+    Route::apiResource('products', ProductController::class);
+    Route::apiResource('pricing-rules', PricingRuleController::class);
+    Route::apiResource('vanity-routes', VanityRouteController::class)->parameters(['vanity-routes' => 'vanityRoute']);
 });
 
 // Public endpoint for inbound lead submissions
