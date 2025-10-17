@@ -27,9 +27,15 @@ class TenantAndLeadSeederTest extends TestCase
     #[Test]
     public function seeder_skips_in_production(): void
     {
-        // Arrange: emulate production and allow flag (the guard should still skip)
-        putenv('APP_ENV=production');
+        // Arrange: Override app environment to production
+        // We must set this BEFORE the application resolves the environment
+        $this->app['env'] = 'production';
+        config()->set('app.env', 'production');
+        
+        // Also set environment variables for APP_SEED_ALLOWED
         putenv('APP_SEED_ALLOWED=true');
+        $_ENV['APP_SEED_ALLOWED'] = 'true';
+        $_SERVER['APP_SEED_ALLOWED'] = 'true';
 
         // Act: run the seeder
         $this->seed(TenantAndLeadSeeder::class);
@@ -39,16 +45,20 @@ class TenantAndLeadSeederTest extends TestCase
         $this->assertSame(0, Lead::count(), 'No leads should be created in production.');
 
         // Cleanup
-        putenv('APP_ENV');
+        $this->app['env'] = 'testing';
+        config()->set('app.env', 'testing');
         putenv('APP_SEED_ALLOWED');
+        unset($_ENV['APP_SEED_ALLOWED'], $_SERVER['APP_SEED_ALLOWED']);
     }
 
     #[Test]
     public function seeder_skips_when_flag_is_not_true(): void
     {
         // Arrange: non-production with flag disabled
-        putenv('APP_ENV=testing');
+        config()->set('app.env', 'testing');
         putenv('APP_SEED_ALLOWED=false');
+        $_ENV['APP_SEED_ALLOWED'] = 'false';
+        $_SERVER['APP_SEED_ALLOWED'] = 'false';
 
         // Act
         $this->seed(TenantAndLeadSeeder::class);
@@ -58,8 +68,8 @@ class TenantAndLeadSeederTest extends TestCase
         $this->assertSame(0, Lead::count(), 'No leads should be created when APP_SEED_ALLOWED is not true.');
 
         // Cleanup
-        putenv('APP_ENV');
         putenv('APP_SEED_ALLOWED');
+        unset($_ENV['APP_SEED_ALLOWED'], $_SERVER['APP_SEED_ALLOWED']);
     }
 
     #[Test]
