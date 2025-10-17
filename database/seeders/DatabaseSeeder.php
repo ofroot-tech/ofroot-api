@@ -45,20 +45,20 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Conditionally invoke dev data seeder
+        // Production: seed demo user only
         if (App::environment('production')) {
-            $this->command?->info('DatabaseSeeder: Skipping TenantAndLeadSeeder in production.');
+            $this->call(DemoUserSeeder::class);
+            $this->command?->info('DatabaseSeeder: Seeded demo user for production.');
             return;
         }
 
+        // Dev: seed docs and tenants/leads if allowed
         if (env('APP_SEED_ALLOWED') !== 'true') {
             $this->command?->info('DatabaseSeeder: Skipping TenantAndLeadSeeder (APP_SEED_ALLOWED!=true).');
             return;
         }
 
-        // Import filesystem docs into DB (safe, idempotent)
         $this->call(DocsSeeder::class);
-
         $this->call(TenantAndLeadSeeder::class);
     }
 }
