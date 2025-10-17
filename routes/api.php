@@ -32,14 +32,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // -----------------------------------------------------------------------------
 //  Section 2: Tenant-Scoped API Routes
 //  -----------------------------------------------------------------------------
-//  All routes within this group require authentication via Sanctum. The
-//  tenant-related endpoints are automatically scoped to the authenticated
-//  user's tenant, eliminating the need to specify a tenant ID in the URL.
+//  NOTE: Tenant routes are defined in the Admin-only section below to ensure
+//  proper access control. Only admin users can manage tenants.
 // -----------------------------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
-    // Tenant CRUD operations (Create, Read, Update, Delete)
-    Route::apiResource('tenants', TenantController::class);
-
     // Future tenant-scoped resources:
     // Route::apiResource('leads', LeadController::class);
     // Route::apiResource('projects', ProjectController::class);
